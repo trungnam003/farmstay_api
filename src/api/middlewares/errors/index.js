@@ -19,11 +19,14 @@ function handleHttpError(err, req, res, next){
         }
         res.status(err.statusCode).json(err.respone);
     }else if(err instanceof Error){
-        const {message, } = err;
+        // const {message, } = err;
+        console.log(err)
         const httpError = new HttpError({
             statusCode: 500,
-            respone: message
-        })
+            respone: new ResponseAPI({
+                msg: "INTERNAL SERVER ERROR",
+                msg_vi: 'Có lỗi ở server'
+        })});
         res.status(500).json(httpError.respone)
     }
 }

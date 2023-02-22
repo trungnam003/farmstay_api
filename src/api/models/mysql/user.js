@@ -75,8 +75,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('customer', 'employee'),
       allowNull: false,
     },
-    refesh_token:{
-      type: DataTypes.STRING(1024),
+    is_logout:{
+      type: DataTypes.BOOLEAN,
       allowNull: true,
     },
   }, {

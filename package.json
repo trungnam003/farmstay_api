@@ -7,18 +7,21 @@
     "dev": "nodemon ./src/server.js"
   },
   "dependencies": {
+    "@hapi/joi": "^17.1.1",
     "bcrypt": "^5.1.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "helmet": "^6.0.1",
+    "ioredis": "^5.3.1",
     "jsonwebtoken": "^9.0.0",
     "mysql2": "^2.3.3",
+    "nanoid": "3.3.4",
+    "node-cron": "^3.0.2",
     "sequelize": "^6.26.0"
   },
   "devDependencies": {
     "morgan": "^1.10.0",
     "nodemon": "^2.0.20",
-    "sequelize-cli": "^6.5.2",
-    "swagger-ui-express": "^4.6.0"
+    "sequelize-cli": "^6.5.2"
   }
 }

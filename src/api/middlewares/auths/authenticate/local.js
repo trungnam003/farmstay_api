@@ -3,13 +3,22 @@ const {User, sequelize}       = require('../../../models/mysql');
 const bcrypt       = require('bcrypt');
 const {HttpError, } = require('../../../utils/error');
 const ResponseAPI = require('../../../utils/api_response');
-
+const {Validate, Joi} = require('../../../helpers/validate')
 
 async function authenticateLocal(req, res, next){
     try {
-        const {email, password} = req.body;
+        // const check = req.body.hasOwnProperty('email') || req.body.hasOwnProperty('username')
+        const {login, password, } = req.body;
+        
+        const {error, value} = Validate({login}, {
+            login: Validate.isEmail(),
+        })
+        console.log(value)
+        let query = error ? {username: value.login}: {email: value.login};
+        
+        console.log(query)
         const user = await User.findOne({
-            where:{email: email},
+            where:{...query},
         });
         
         if(!user){
@@ -40,7 +49,7 @@ async function authenticateLocal(req, res, next){
         }
         
     } catch (error) {
-        
+        return next(error);
     }
 }
 

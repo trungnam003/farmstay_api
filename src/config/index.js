@@ -21,6 +21,9 @@ const config = {
     },
     password:{
         salt: 12
+    },
+    redis: {
+        blacklist_jwt: 'blacklist_jwt'
     }
 }
 

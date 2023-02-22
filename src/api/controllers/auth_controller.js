@@ -4,8 +4,8 @@ const config = require('../../config')
 const jwt = require('jsonwebtoken')
 const {HttpError, } = require('../utils/error');
 const ResponseAPI = require('../utils/api_response');
-
-
+const {nanoid} = require('nanoid')
+const {addJwtIdToBlacklist} = require('../helpers/redis/blacklist_jwt')
 class AuthController{
     async test(req, res, next){
         try {
@@ -21,20 +21,30 @@ class AuthController{
             const userType = 'customer';
             const salt = await bcrypt.genSalt(config.password.salt);
             const hashed_password = await bcrypt.hash(password, salt);
-            await User.create({
-                username, email, hashed_password, phone, gender,
-                user_type: userType
-            })
+            try{
+                await User.create({
+                    username, email, hashed_password, phone, gender,
+                    user_type: userType
+                })
+            }catch{
+                return next(new HttpError({
+                    statusCode: 422, respone: new ResponseAPI({
+                        msg: 'Can\'t create an account',
+                        msg_vi: 'Không thể tạo tài khoản',
+                    })
+                }))
+            }
+            
 
             const responseAPI = new ResponseAPI({
-                msg: 'Successfully created user',
-                msg_vi: 'Tạo thành công user',
+                msg: 'Account successfully created',
+                msg_vi: 'Tạo tài khoản thành công',
             })
 
             res.status(200).json(responseAPI)
         } catch (error) {
             console.log(error)
-            res.status(409).json('err')
+            next(error)
         }
     }
 
@@ -45,8 +55,8 @@ class AuthController{
             
             const JWT = jwt.sign({
                 sub: username,
+                jwt_id: nanoid(),
             }, config.secret_key.jwt , {expiresIn: config.jwt.exp, issuer: config.jwt.issuer})
-            res.header(config.jwt.jwt_header, JWT);
             
             const responseAPI = new ResponseAPI({
                 msg: 'Login successfully',
@@ -58,6 +68,32 @@ class AuthController{
             })
 
             res.status(200).json(responseAPI)
+        } catch (error) {
+            console.log(error)
+            next(error)
+        }
+    }
+
+    async logoutUser(req, res, next){
+        try {
+            
+            if(req.jwt_payload){
+                let {jwt_id, exp} = req.jwt_payload;
+                await addJwtIdToBlacklist(jwt_id, exp);
+                const responseAPI = new ResponseAPI({
+                    msg: 'Logout successfully',
+                    msg_vi: 'Đăng xuất thành công',
+                })
+                res.status(200).json(responseAPI)
+            }else{
+                const responseAPI = new ResponseAPI({
+                    msg: 'Logout failed',
+                    msg_vi: 'Đăng xuất thất bại',
+                })
+                res.status(401).json(responseAPI)
+            }
+            
+            
         } catch (error) {
             console.log(error)
             next(error)
