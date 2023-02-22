@@ -54,7 +54,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     phone:{
       type: DataTypes.STRING(15),
-      allowNull: true,
+      allowNull: false,
       unique: true
     },
     gender:{
@@ -75,10 +75,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('customer', 'employee'),
       allowNull: false,
     },
-    is_logout:{
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-    },
+    
   }, {
     sequelize,
     modelName: 'User',
