@@ -8,8 +8,17 @@ const {HttpError,} 						= require('./api/utils/error');
 const ResponseAPI 						= require('./api/utils/api_response');
 const cron 								= require('node-cron');
 const helmet 							= require("helmet");
-const {removeJwtExpiredFromBlacklist} = require('./api/helpers/redis/blacklist_jwt')
-const redis 							= require('./config/redis')
+const {removeJwtExpiredFromBlacklist} 	= require('./api/helpers/redis/blacklist_jwt')
+const {redis} 							= require('./config/redis')
+const {connect} = require('./config/mongo')
+const mqttClient = require('./config/mqtt')
+
+
+const {socketio} = require('./api/app/socket.io')
+
+
+const path = require('path');
+
 require('dotenv').config();
 
 const app = express()
@@ -17,6 +26,7 @@ const PORT = process.env.PORT
 const env = process.env.NODE_ENV
 
 const main =  async()=>{
+	
 	// logging
 	app.use(morgan('dev'));
 
@@ -26,6 +36,19 @@ const main =  async()=>{
 
 	// helmet
 	app.use(helmet.hidePoweredBy());
+
+	//static
+	app.use(express.static(path.join(__dirname, 'public') ));
+
+	// create server
+	const httpServer = createServer(app)
+	//socketio
+	socketio(httpServer)
+	
+	mqttClient.on('connect', () => {
+		console.log('Connected to MQTT broker');
+		
+	});
 
 	app.use(router);
 
@@ -48,27 +71,31 @@ const main =  async()=>{
 		console.log("Connect MySql FAIL :(");
 	}
 	try {
+        await connect();
+        console.log("Connect MongoDB OK ^^");
+    } catch (error) {
+        console.log("Connect MongoDB FAIL :(");
+    }
+	try {
 		await redis.ping();
         console.log("Connect Redis OK ^^");
 	} catch (error) {
 		console.log(error)
 		console.log("Connect Redis FAIL :(");
 	}
-	
-	// create server
-	const httpServer = createServer(app)
+
     await new Promise((resolve) => httpServer.listen(PORT, '0.0.0.0', undefined, 
 		()=>{console.log(`App listening on http://localhost:${PORT}`);}
 	));
 
 }
 //'59 23 * * 2,4,6'
-cron.schedule('*/30 * * * * *', () => { 
-	// console.log("Remove Blacklist")
-	removeJwtExpiredFromBlacklist();
-}, {
-	timezone: 'Asia/Ho_Chi_Minh' // Set múi giờ cho job
-})
+// cron.schedule('*/30 * * * * *', () => { 
+// 	// console.log("Remove Blacklist")
+// 	removeJwtExpiredFromBlacklist();
+// }, {
+// 	timezone: 'Asia/Ho_Chi_Minh' // Set múi giờ cho job
+// })
 
 
 main().catch(error => console.log('ERROR STARTING SERVER: ', error))

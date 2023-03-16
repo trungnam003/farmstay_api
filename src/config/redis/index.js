@@ -9,4 +9,6 @@ const redis = new Redis({
   });
 
 
-module.exports = redis;
+module.exports = {
+  redis, Redis
+};

@@ -14,8 +14,7 @@ module.exports.validateParam = function (target){
         const {error, } = Validate(req.params, target)
         if(error){
             const resError = new ResponseAPI({
-                msg: "loi",
-                msg_vi: "loi"
+                msg: error.message,
             })
             next(new HttpError({statusCode: 400, respone: resError}))
         }else{
@@ -26,9 +25,7 @@ module.exports.validateParam = function (target){
 module.exports.validateBody = function (target){
     return (req, res, next)=>{
         const {error, } = Validate(req.body, target)
-        
         if(error){
-            console.log(error)
             const resError = new ResponseAPI({
                 msg: error.message,
             })
@@ -41,11 +38,9 @@ module.exports.validateBody = function (target){
 module.exports.validateQuery = function (target){
     return (req, res, next)=>{
         const {error, } = Validate(req.query, target)
-        
         if(error){
             const resError = new ResponseAPI({
-                msg: "loi",
-                msg_vi: "loi"
+                msg: error.message,
             })
             next(new HttpError({statusCode: 400, respone: resError}))
         }else{

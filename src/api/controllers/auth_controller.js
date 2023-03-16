@@ -1,4 +1,4 @@
-const {User}       = require('../models/mysql')
+const {User, Customer}       = require('../models/mysql')
 const bcrypt       = require('bcrypt')
 const config = require('../../config')
 const jwt = require('jsonwebtoken')
@@ -6,25 +6,33 @@ const {HttpError, } = require('../utils/error');
 const ResponseAPI = require('../utils/api_response');
 const {nanoid} = require('nanoid')
 const {addJwtIdToBlacklist} = require('../helpers/redis/blacklist_jwt')
+
+
 class AuthController{
-    async test(req, res, next){
-        try {
-            res.json('ok')
-        } catch (error) {
-            
-        }
+    constructor(){
+        this.registerUser = this.registerUser.bind(this);
+        this.loginUser = this.loginUser.bind(this);
+        this.logoutUser = this.logoutUser.bind(this);        
     }
 
     async registerUser(req, res, next){
         try {
             const {username, email, password, phone, gender} = req.body;
-            const userType = 'customer';
             const salt = await bcrypt.genSalt(config.password.salt);
             const hashed_password = await bcrypt.hash(password, salt);
             try{
                 await User.create({
                     username, email, hashed_password, phone, gender,
-                    user_type: userType
+                    user_type: config.user.customer,
+                    user_customer: {}
+                }, {
+                    include: [
+                        {
+                            model: Customer,
+                            as: 'user_customer',
+                            
+                        }
+                    ]
                 })
             }catch{
                 return next(new HttpError({
@@ -64,8 +72,10 @@ class AuthController{
                 object: {
                     status_login: true,
                     [config.jwt.jwt_header]: JWT,
+                    token_expires_in: Math.floor((Date.now()/1000)+(config.jwt.exp))
                 }
             })
+
 
             res.status(200).json(responseAPI)
         } catch (error) {
@@ -101,4 +111,4 @@ class AuthController{
     }
 }
 
-module.exports = new AuthController();
+module.exports = AuthController;

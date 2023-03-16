@@ -13,68 +13,77 @@ function getJwtFromHeader(req, headerName){
     return token;
 }
 
-const verifyJwtFromHeader = async function(req, res, next){
-    try {
-        const jwtFromHeader = getJwtFromHeader(req, config.jwt.jwt_header);
-        if(jwtFromHeader === null){
-            return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                msg: 'Header does not contain authenticate token',
-                msg_vi: 'Tiêu đề không chứa mã thông báo xác thực',
-                object: {
-                    status_verify_jwt: false
-                }
-            })}));
-        }
-        let error, payload, checkTokenInBlackLlist;
-        // Xác thực jwt
-        jwt.verify(jwtFromHeader, config.secret_key.jwt,{ issuer: config.jwt.issuer }, (err, decode)=>{
-            error = err;
-            payload = decode
-        })
-        if(!error){
-            checkTokenInBlackLlist = await isBlacklistedJwt(payload.jwt_id);
-        }
+const verifyJwtFromHeader = function({isRequired=true}={}){
+    
+    return async function(req, res, next){
         
-        if(error instanceof jwt.TokenExpiredError){
-            return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                msg: 'Token expired',
-                msg_vi: 'Token hết hạn',
-                object: {
-                    status_verify_jwt: false
+        try {
+            const jwtFromHeader = getJwtFromHeader(req, config.jwt.jwt_header);
+            
+            if(!jwtFromHeader){
+                if(!isRequired){
+                    return next();
                 }
-            })}));
-        }else if(error){
-            // Nếu có lỗi khác thì next cho các middleware xử lí lỗi của jwt
+                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
+                    msg: 'Header does not contain authenticate token',
+                    msg_vi: 'Tiêu đề không chứa mã thông báo xác thực',
+                    object: {
+                        status_verify_jwt: false
+                    }
+                })}));
+            }
+            let error, payload, checkTokenInBlackLlist;
+            // Xác thực jwt
+            jwt.verify(jwtFromHeader, config.secret_key.jwt,{ issuer: config.jwt.issuer }, (err, decode)=>{
+                error = err;
+                payload = decode
+            })
+            if(!error){
+                checkTokenInBlackLlist = await isBlacklistedJwt(payload.jwt_id);
+            }
+            
+            if(error instanceof jwt.TokenExpiredError){
+                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
+                    msg: 'Token expired',
+                    msg_vi: 'Token hết hạn',
+                    object: {
+                        status_verify_jwt: false
+                    }
+                })}));
+            }else if(error){
+                // Nếu có lỗi khác thì next cho các middleware xử lí lỗi của jwt
+                return next(error);
+            }else if(checkTokenInBlackLlist){
+                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
+                    msg: 'Token has been logged out',
+                    msg_vi: 'Token đã được đăng xuất',
+                    object: {
+                        status_verify_jwt: false
+                    }
+                })}));
+            }
+            
+            const username = payload.sub;
+            const user = await User.findOne({
+                where:{username},
+            });
+            if(!user){
+                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
+                    msg: 'Account does not exist',
+                    msg_vi: 'Tài khoản không tồn tại',
+                    object: {
+                        status_verify_jwt: false
+                    }
+                })}));
+            }else{
+                req.user = user;
+                req.jwt_payload = payload
+                return next();
+            }
+        } catch (error) {
             return next(error);
-        }else if(checkTokenInBlackLlist){
-            return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                msg: 'Token has been logged out',
-                msg_vi: 'Token đã được đăng xuất',
-                object: {
-                    status_verify_jwt: false
-                }
-            })}));
         }
         
-        const username = payload.sub;
-        const user = await User.findOne({
-            where:{username},
-        });
-        if(!user){
-            return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                msg: 'Account does not exist',
-                msg_vi: 'Tài khoản không tồn tại',
-                object: {
-                    status_verify_jwt: false
-                }
-            })}));
-        }else{
-            req.user = user;
-            req.jwt_payload = payload
-            return next();
-        }
-    } catch (error) {
-        return next(error);
     }
 }
 // const refeshJWT = async function(req, res, next){
@@ -127,4 +136,4 @@ const verifyJwtFromHeader = async function(req, res, next){
 //     }
 // }
 
-module.exports.authenticateJWT = [verifyJwtFromHeader]
+module.exports.authenticateJWT = verifyJwtFromHeader

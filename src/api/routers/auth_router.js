@@ -1,28 +1,16 @@
-const Router = require("express").Router();
 const AuthController = require('../controllers/auth_controller');
 const {authenticateLocal} = require('../middlewares/auths/authenticate/local')
 const {HttpError, } = require('../utils/error');
-const ResponseAPI = require('../utils/api_response');
 const {authenticateJWT} = require('../middlewares/auths/authenticate/jwt')
 const {validateBody, Validate, Joi } = require('../middlewares/validates')
 
-
-Router
-.route('/test')
-.get(
-    authenticateJWT, 
-    AuthController.test
-)
-.all((req, res, next)=>{
-    next(new HttpError({statusCode: 405}))
-    
-});
+const Router = require("express").Router();
+const authController = new AuthController();
 
 Router
 .route('/register')
 .post(
-
-    AuthController.registerUser
+    authController.registerUser
 )
 .all((req, res, next)=>{
     next(new HttpError({statusCode: 405}))
@@ -37,7 +25,7 @@ Router
         password: Validate.isString().min(3),
     }),
     authenticateLocal,
-    AuthController.loginUser
+    authController.loginUser
 )
 .all((req, res, next)=>{
     next(new HttpError({statusCode: 405}))
@@ -46,8 +34,8 @@ Router
 Router
 .route('/logout')
 .get(
-    authenticateJWT,
-    AuthController.logoutUser
+    authenticateJWT(),
+    authController.logoutUser
 )
 .all((req, res, next)=>{
     next(new HttpError({statusCode: 405}))

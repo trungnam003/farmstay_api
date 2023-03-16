@@ -1,4 +1,4 @@
-const redis = require('../../../config/redis')
+const {redis} = require('../../../config/redis')
 const config = require('../../../config')
 
 async function addJwtIdToBlacklist(jwtId, exp){

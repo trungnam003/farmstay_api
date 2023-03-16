@@ -24,6 +24,10 @@ const config = {
     },
     redis: {
         blacklist_jwt: 'blacklist_jwt'
+    },
+    user:{
+        customer: 'customer',
+        employee: 'employee'
     }
 }
 

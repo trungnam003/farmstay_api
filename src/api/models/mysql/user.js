@@ -2,7 +2,6 @@
 const {
   Model
 } = require('sequelize');
-
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -14,21 +13,21 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       const {Employee, Customer, Role} = models
       // hasOne
-      // User.hasOne(Employee, {
-      //   foreignKey: {name: 'user_id'},
-      //   sourceKey: 'id',
-      //   as: 'user_employee'
-      // });
-      // User.hasOne(Customer, {
-      //   foreignKey: {name: 'user_id',},
-      //   sourceKey: 'id',
-      //   as: 'user_customer'
-      // })
-      // User.belongsTo(Role, {
-      //   foreignKey: {name: 'role_id', allowNull: true},
-      //   targetKey: 'id',
-      //   as: 'role'
-      // })
+      User.hasOne(Employee, {
+        foreignKey: {name: 'user_id'},
+        sourceKey: 'id',
+        as: 'user_employee'
+      });
+      User.hasOne(Customer, {
+        foreignKey: {name: 'user_id',},
+        sourceKey: 'id',
+        as: 'user_customer'
+      })
+      User.belongsTo(Role, {
+        foreignKey: {name: 'role_id', allowNull: true},
+        targetKey: 'id',
+        as: 'role'
+      })
     }
   }
   User.init({
@@ -54,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     phone:{
       type: DataTypes.STRING(15),
-      allowNull: false,
+      allowNull: true,
       unique: true
     },
     gender:{
