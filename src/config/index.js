@@ -1,5 +1,5 @@
 require("dotenv").config();
-const {deepFreeze} = require('../api/utils/object_utils')
+const {deepFreeze} = require('../api/utils/objectUtils')
 
 const config = {
     server: {
@@ -23,12 +23,23 @@ const config = {
         salt: 12
     },
     redis: {
-        blacklist_jwt: 'blacklist_jwt'
+        blacklist_jwt: 'blacklist_jwt',
+        user_otp_code: 'user_otp_code'
     },
     user:{
         customer: 'customer',
         employee: 'employee'
-    }
+    },
+    email_service: {
+        password: process.env.MAIL_PASSWORD,
+        username : process.env.MAIL_USERNAME,
+        mail_mailer : process.env.MAIL_MAILER,
+        host : process.env.MAIL_HOST,
+        port : process.env.MAIL_PORT,
+        encryption : process.env.MAIL_ENCRYPTION,
+        from : process.env.MAIL_FROM, 
+        from_name : process.env.MAIL_FROM_NAME,
+    },
 }
 
 deepFreeze(config);

@@ -1,10 +1,12 @@
 
-const {User, sequelize}       = require('../../../models/mysql');
-const {HttpError, } = require('../../../utils/error');
-const ResponseAPI = require('../../../utils/api_response');
-const config = require('../../../../config')
-const jwt = require('jsonwebtoken')
-const { isBlacklistedJwt } = require('../../../helpers/redis/blacklist_jwt')
+const {User, sequelize}                         = require('../../../models/mysql');
+const {HttpError, }                             = require('../../../utils/error');
+const {ApiError}                                = require('../../../utils/apiResponse');
+const config                                    = require('../../../../config')
+const jwt                                       = require('jsonwebtoken')
+const { isBlacklistedJwt }                      = require('../../../helpers/redis/blacklistJwt')
+const {verifyJwt}                               = require('../../../services/jwt');
+
 function getJwtFromHeader(req, headerName){
     let token = null;
     if(req && req.headers){
@@ -16,50 +18,24 @@ function getJwtFromHeader(req, headerName){
 const verifyJwtFromHeader = function({isRequired=true}={}){
     
     return async function(req, res, next){
-        
         try {
             const jwtFromHeader = getJwtFromHeader(req, config.jwt.jwt_header);
-            
             if(!jwtFromHeader){
                 if(!isRequired){
                     return next();
                 }
-                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                    msg: 'Header does not contain authenticate token',
-                    msg_vi: 'Tiêu đề không chứa mã thông báo xác thực',
-                    object: {
-                        status_verify_jwt: false
-                    }
+                return next(new HttpError({statusCode: 401, respone: new ApiError({
+                    message: 'Header does not contain authenticate token',
                 })}));
             }
-            let error, payload, checkTokenInBlackLlist;
+            let checkTokenInBlackLlist;
             // Xác thực jwt
-            jwt.verify(jwtFromHeader, config.secret_key.jwt,{ issuer: config.jwt.issuer }, (err, decode)=>{
-                error = err;
-                payload = decode
-            })
-            if(!error){
-                checkTokenInBlackLlist = await isBlacklistedJwt(payload.jwt_id);
-            }
+            const payload = await verifyJwt(jwtFromHeader);
+            checkTokenInBlackLlist = await isBlacklistedJwt(payload.jwt_id);
             
-            if(error instanceof jwt.TokenExpiredError){
-                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                    msg: 'Token expired',
-                    msg_vi: 'Token hết hạn',
-                    object: {
-                        status_verify_jwt: false
-                    }
-                })}));
-            }else if(error){
-                // Nếu có lỗi khác thì next cho các middleware xử lí lỗi của jwt
-                return next(error);
-            }else if(checkTokenInBlackLlist){
-                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                    msg: 'Token has been logged out',
-                    msg_vi: 'Token đã được đăng xuất',
-                    object: {
-                        status_verify_jwt: false
-                    }
+            if(checkTokenInBlackLlist){
+                return next(new HttpError({statusCode: 401, respone: new ApiError({
+                    message: 'Token has been logged out',
                 })}));
             }
             
@@ -68,22 +44,36 @@ const verifyJwtFromHeader = function({isRequired=true}={}){
                 where:{username},
             });
             if(!user){
-                return next(new HttpError({statusCode: 401, respone: new ResponseAPI({
-                    msg: 'Account does not exist',
-                    msg_vi: 'Tài khoản không tồn tại',
-                    object: {
-                        status_verify_jwt: false
-                    }
+                return next(new HttpError({statusCode: 401, respone: new ApiError({
+                    message: 'Account does not exist',
+                    
                 })}));
             }else{
-                req.user = user;
-                req.jwt_payload = payload
-                return next();
+                const {changed_password_at} = user;
+                const {iat} = payload;
+                const checkOldToken = Math.trunc(Date.parse(changed_password_at)/1000) > iat;
+                if(checkOldToken){
+                    return next(new HttpError({statusCode: 401, respone: new ApiError({
+                        message: 'This token is old, you have changed the password',
+                    })}));
+                }else{
+                    req.user = user;
+                    req.jwtPayload = payload
+                    return next();
+                }
+            
+                
             }
         } catch (error) {
-            return next(error);
+            if(error instanceof jwt.TokenExpiredError){
+                return next(new HttpError({statusCode: 401, respone: new ApiError({
+                    message: 'Token expired',
+                })}));
+            }else if(error){
+                // Nếu có lỗi khác thì next cho các middleware xử lí lỗi của jwt
+                return next(error);
+            }
         }
-        
     }
 }
 // const refeshJWT = async function(req, res, next){

@@ -1,4 +1,4 @@
-const AuthController = require('../controllers/auth_controller');
+const AuthController = require('../controllers/authController');
 const {authenticateLocal} = require('../middlewares/auths/authenticate/local')
 const {HttpError, } = require('../utils/error');
 const {authenticateJWT} = require('../middlewares/auths/authenticate/jwt')

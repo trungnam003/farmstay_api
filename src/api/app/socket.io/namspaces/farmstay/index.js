@@ -1,6 +1,6 @@
 const config = require('../../../../../config')
 const jwt = require('jsonwebtoken')
-const { isBlacklistedJwt } = require('../../../../helpers/redis/blacklist_jwt')
+const { isBlacklistedJwt } = require('../../../../helpers/redis/blacklistJwt')
 const SocketIoSingleton = require('../../SocketIoSingleton')
 
 function farmstaySocketIo(){

@@ -1,8 +1,7 @@
-
-const e = require('express');
 const config= require('../../../../config')
-const ResponseAPI = require('../../../utils/api_response');
+const {ApiError} = require('../../../utils/apiResponse');
 const {HttpError, } = require('../../../utils/error');
+const {Customer}                         = require('../../../models/mysql');
 
 const setUrlAuthorization = (currentUrl)=>{
     return (req, res, next)=>{
@@ -29,9 +28,8 @@ const checkUserActive = function({isRequired=true}={}){
             }else if(!isRequired){
                 next();
             }else{
-                return next(new HttpError({statusCode: 403, respone: new ResponseAPI({
-                    msg: 'Account must be activated',
-                    msg_vi: 'Tài khoản phải được kích hoạt',
+                return next(new HttpError({statusCode: 403, respone: new ApiError({
+                    message: 'Account must be activated',
                 })}));
             }
         }
@@ -39,19 +37,22 @@ const checkUserActive = function({isRequired=true}={}){
 }
 
 const checkCustomerUser = function({isRequired=true}={}){
-    return (req, res, next)=>{
-        if(req.user){
-            const {user_type} = req.user;
-            if(user_type === config.user.customer){
-                next()
-            }else if(!isRequired){
-                next();
-            }else{
-                return next(new HttpError({statusCode: 403, respone: new ResponseAPI({
-                    msg: 'Unsuccessfully',
-                    msg_vi: 'Không thành công',
-                })}));
+    return async (req, res, next)=>{
+        try {
+            if(req.user){
+                const {user_type, id:user_id} = req.user;
+                if(user_type === config.user.customer){
+                    const customer = await Customer.findOne({where: {user_id}})
+                    req.customer = customer;
+                    next()
+                }else if(!isRequired){
+                    next();
+                }else{
+                    return next(new HttpError({statusCode: 403, respone: new ApiError({})}));
+                }
             }
+        } catch (error) {
+            return next(error);
         }
     }
 }

@@ -5,18 +5,15 @@ const { createServer }                  = require('http');
 const router                            = require('./api/routers')
 const errors 							= require('./api/middlewares/errors');
 const {HttpError,} 						= require('./api/utils/error');
-const ResponseAPI 						= require('./api/utils/api_response');
+const {ApiError} 						= require('./api/utils/apiResponse');
 const cron 								= require('node-cron');
 const helmet 							= require("helmet");
-const {removeJwtExpiredFromBlacklist} 	= require('./api/helpers/redis/blacklist_jwt')
+const {removeJwtExpiredFromBlacklist} 	= require('./api/helpers/redis/blacklistJwt')
 const {redis} 							= require('./config/redis')
 const {connect} = require('./config/mongo')
 const mqttClient = require('./config/mqtt')
 
-
 const {socketio} = require('./api/app/socket.io')
-
-
 const path = require('path');
 
 require('dotenv').config();
@@ -53,10 +50,7 @@ const main =  async()=>{
 	app.use(router);
 
 	app.all('*', function(req, res, next){
-        next(new HttpError({statusCode: 404, respone: new ResponseAPI({
-			msg: 'Invalid API',
-			msg_vi: 'API không hợp lệ'
-		})}))
+        next(new HttpError({statusCode: 404, respone: new ResponseAPI({})}))
     });
 
     // use list error handle
@@ -70,12 +64,12 @@ const main =  async()=>{
 		console.log(error)
 		console.log("Connect MySql FAIL :(");
 	}
-	try {
-        await connect();
-        console.log("Connect MongoDB OK ^^");
-    } catch (error) {
-        console.log("Connect MongoDB FAIL :(");
-    }
+	// try {
+    //     await connect();
+    //     console.log("Connect MongoDB OK ^^");
+    // } catch (error) {
+    //     console.log("Connect MongoDB FAIL :(");
+    // }
 	try {
 		await redis.ping();
         console.log("Connect Redis OK ^^");

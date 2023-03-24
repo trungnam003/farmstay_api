@@ -1,6 +1,6 @@
 const config = require('../../../../../config')
 const jwt = require('jsonwebtoken')
-const { isBlacklistedJwt } = require('../../../../helpers/redis/blacklist_jwt')
+const { isBlacklistedJwt } = require('../../../../helpers/redis/blacklistJwt')
 const SocketIoSingleton = require('../../SocketIoSingleton')
 const {FarmstayConfig} = require('../../../../models/mongo')
 const {Farmstay, RentFarmstay, Customer, User} = require('../../../../models/mysql')

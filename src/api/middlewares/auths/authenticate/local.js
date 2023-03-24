@@ -2,7 +2,7 @@
 const {User, sequelize}       = require('../../../models/mysql');
 const bcrypt       = require('bcrypt');
 const {HttpError, } = require('../../../utils/error');
-const ResponseAPI = require('../../../utils/api_response');
+const {ApiError} = require('../../../utils/apiResponse');
 const {Validate, Joi} = require('../../../helpers/validate')
 
 async function authenticateLocal(req, res, next){
@@ -13,21 +13,16 @@ async function authenticateLocal(req, res, next){
         const {error, value} = Validate({login}, {
             login: Validate.isEmail(),
         })
-        console.log(value)
+        
         let query = error ? {username: value.login}: {email: value.login};
         
-        console.log(query)
         const user = await User.findOne({
             where:{...query},
         });
         
         if(!user){
-            const error = new HttpError({statusCode: 401, respone: new ResponseAPI({
-                msg: 'Account does not exist',
-                msg_vi: 'Tài khoản không tồn tại',
-                object: {
-                    status_login: false
-                }
+            const error = new HttpError({statusCode: 401, respone: new ApiError({
+                message: 'Account does not exist', 
             })})
             next(error)
         }else{
@@ -37,12 +32,8 @@ async function authenticateLocal(req, res, next){
                 req.user = user
                 next()
             }else{
-                const error = new HttpError({statusCode: 401, respone: new ResponseAPI({
-                    msg: 'Wrong password',
-                    msg_vi: 'Sai mật khẩu',
-                    object: {
-                        status_login: false
-                    }
+                const error = new HttpError({statusCode: 401, respone: new ApiError({
+                    message: 'Wrong password'
                 })})
                 next(error)
             }

@@ -2,7 +2,7 @@ const {HttpError, } = require('../utils/error');
 const {authenticateJWT} = require('../middlewares/auths/authenticate/jwt')
 const {validateBody, Validate, Joi } = require('../middlewares/validates')
 const {setUrlAuthorization, checkCustomerUser, checkUserActive} = require('../middlewares/auths/authorization')
-const CustomerController = require('../controllers/customer_controller');
+const CustomerController = require('../controllers/customerController');
 
 const Router = require("express").Router();
 const customerController = new CustomerController();
@@ -30,15 +30,6 @@ Router
 });
 
 
-Router
-.route('/farmstay/open_connect')
-.get(
-    authenticateJWT(),
-    checkCustomerUser(), checkUserActive({isRequired: false}),
-    customerController.openConnectSocketIo
-)
-.all((req, res, next)=>{
-    next(new HttpError({statusCode: 405}))
-});
+
 
 module.exports = Router;

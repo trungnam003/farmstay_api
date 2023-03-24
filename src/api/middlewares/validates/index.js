@@ -1,5 +1,5 @@
 const {HttpError, } = require('../../utils/error');
-const ResponseAPI = require('../../utils/api_response');
+const {ApiError} = require('../../utils/apiResponse');
 const {Validate, Joi} = require('../../helpers/validate')
 /**
 * 
@@ -13,7 +13,7 @@ module.exports.validateParam = function (target){
     return (req, res, next)=>{
         const {error, } = Validate(req.params, target)
         if(error){
-            const resError = new ResponseAPI({
+            const resError = new ApiError({
                 msg: error.message,
             })
             next(new HttpError({statusCode: 400, respone: resError}))
@@ -26,7 +26,7 @@ module.exports.validateBody = function (target){
     return (req, res, next)=>{
         const {error, } = Validate(req.body, target)
         if(error){
-            const resError = new ResponseAPI({
+            const resError = new ApiError({
                 msg: error.message,
             })
             next(new HttpError({statusCode: 400, respone: resError}))
@@ -39,7 +39,7 @@ module.exports.validateQuery = function (target){
     return (req, res, next)=>{
         const {error, } = Validate(req.query, target)
         if(error){
-            const resError = new ResponseAPI({
+            const resError = new ApiError({
                 msg: error.message,
             })
             next(new HttpError({statusCode: 400, respone: resError}))
