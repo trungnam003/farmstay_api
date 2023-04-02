@@ -9,7 +9,6 @@ const farmstayController = new FarmstayController();
 Router
 .route('/')
 .get(
-    authenticateJWT({isRequired:false}),
     farmstayController.getAllFarmstay
 )
 .all((req, res, next)=>{
@@ -19,14 +18,12 @@ Router
 Router
 .route('/:uuid')
 .get(
-    authenticateJWT({isRequired:false}),
-    checkCustomerUser({isRequired:false}),
     farmstayController.getFarmstayByUuid
 )
 .post(
     authenticateJWT(),
     checkCustomerUser(),
-    checkUserActive({isRequired:false}),
+    checkUserActive(),
     farmstayController.handleUserRentFarmstayByUuid
 )
 .all((req, res, next)=>{

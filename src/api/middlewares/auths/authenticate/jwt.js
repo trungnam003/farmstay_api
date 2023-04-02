@@ -6,6 +6,7 @@ const config                                    = require('../../../../config')
 const jwt                                       = require('jsonwebtoken')
 const { isBlacklistedJwt }                      = require('../../../helpers/redis/blacklistJwt')
 const {verifyJwt}                               = require('../../../services/jwt');
+const {AUTHENTICATE} = require('../../../constants/errors')
 
 function getJwtFromHeader(req, headerName){
     let token = null;
@@ -26,6 +27,7 @@ const verifyJwtFromHeader = function({isRequired=true}={}){
                 }
                 return next(new HttpError({statusCode: 401, respone: new ApiError({
                     message: 'Header does not contain authenticate token',
+                    error: AUTHENTICATE.HEADER_NO_TOKEN
                 })}));
             }
             let checkTokenInBlackLlist;
@@ -36,6 +38,7 @@ const verifyJwtFromHeader = function({isRequired=true}={}){
             if(checkTokenInBlackLlist){
                 return next(new HttpError({statusCode: 401, respone: new ApiError({
                     message: 'Token has been logged out',
+                    error: AUTHENTICATE.TOKEN_LOGGED_OUT
                 })}));
             }
             
@@ -46,6 +49,7 @@ const verifyJwtFromHeader = function({isRequired=true}={}){
             if(!user){
                 return next(new HttpError({statusCode: 401, respone: new ApiError({
                     message: 'Account does not exist',
+                    error: AUTHENTICATE.ACCOUNT_NOT_EXIST
                     
                 })}));
             }else{
@@ -55,6 +59,7 @@ const verifyJwtFromHeader = function({isRequired=true}={}){
                 if(checkOldToken){
                     return next(new HttpError({statusCode: 401, respone: new ApiError({
                         message: 'This token is old, you have changed the password',
+                        error: AUTHENTICATE.TOKEN_IS_OLD
                     })}));
                 }else{
                     req.user = user;
@@ -68,6 +73,7 @@ const verifyJwtFromHeader = function({isRequired=true}={}){
             if(error instanceof jwt.TokenExpiredError){
                 return next(new HttpError({statusCode: 401, respone: new ApiError({
                     message: 'Token expired',
+                    error: AUTHENTICATE.TOKEN_EXPIRED
                 })}));
             }else if(error){
                 // Nếu có lỗi khác thì next cho các middleware xử lí lỗi của jwt

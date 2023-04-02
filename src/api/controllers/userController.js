@@ -9,6 +9,20 @@ handleResetPasswordUserUsingOtp} = require('../services/controllers/userService'
 
 class UserController{
 
+    getInfomationUser(req, res, next){
+        try {
+            const user = req.user.toJSON();
+            const {username, email, phone, gender, is_active, user_type,changed_password_at} = user;
+            const userResponse = {username, email, phone, gender, is_active, user_type,changed_password_at};
+
+            const respone = new ApiSuccess({data:userResponse});
+            res.status(200).json(respone)
+        } catch (error) {
+            next(error)
+        }
+
+    }
+
     async sendMailOtpActiveUser(req, res, next){
         try {
             const {user} = req
@@ -37,7 +51,10 @@ class UserController{
             const isActived = await handleActiveUser(user, otp);
             if(isActived){
                 const respone = new ApiSuccess({});
-                res.status(202).json(respone)
+                res.status(200).json(respone)
+            }else{
+                const respone = new ApiError({message:'Can not activate user, try again later'})
+                throw new HttpError({statusCode:500,respone})
             }
         } catch (error) {
             next(error)
@@ -120,7 +137,7 @@ class UserController{
                 const respone = new ApiError({
                     message: 'Can not change password'
                 })
-                throw new HttpError({statusCode:503, respone})
+                throw new HttpError({statusCode:500, respone})
             }
         } catch (error) {
             next(error)

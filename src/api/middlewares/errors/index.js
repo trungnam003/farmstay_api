@@ -1,12 +1,15 @@
 const {HttpError, STATUS_CODES} = require('../../utils/error')
 const {ApiError} = require('../../utils/apiResponse');
 const jwt = require('jsonwebtoken')
+const {AUTHENTICATE} = require('../../constants/errors')
+
 function handleJwtError(err, req, res, next){
     
     if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.NotBeforeError){
         
         next(new HttpError({statusCode: 401, respone: new ApiError({
-            message: 'Invalid token',
+            message: AUTHENTICATE.TOKEN_INVALID.message,
+            error: AUTHENTICATE.TOKEN_INVALID
         })}))
     }
     next(err);

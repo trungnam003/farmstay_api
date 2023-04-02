@@ -147,6 +147,7 @@ function farmstayRoomSocketIo(){
         //     console.log(message)
         //     return next()
         // })
+        console.log("Có kết nối");
         socket.on('subscribe', (uuidRoom)=>{
             try{
                 console.log('[socket]','join room :',uuidRoom)

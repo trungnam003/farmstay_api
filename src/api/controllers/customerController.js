@@ -1,7 +1,8 @@
 const {HttpError, }                     = require('../utils/error');
 const {ApiError, ApiSuccess}            = require('../utils/apiResponse');
 const { getFarmstayCustomerOwn, 
-        getConfigFarmstayCustomerOwn}   =require('../services/controllers/customerService')
+        getConfigFarmstayCustomerOwn,
+        getFieldEquipmentFarmstay}   =require('../services/controllers/customerService')
 
 class CustomerController{
     
@@ -31,7 +32,18 @@ class CustomerController{
             next(error)
         }
     }
-
+    async getFieldEquipmentFarmstay(req, res, next){
+        try {
+            const {customer} = req;
+            const fields = await getFieldEquipmentFarmstay(customer)
+            const responseAPI = new ApiSuccess({
+                data: fields,
+            })
+            res.status(200).json(responseAPI)
+        } catch (error) {
+            next(error)
+        }
+    }
     
 }
 

@@ -12,7 +12,7 @@ Router
 .route('/change-password')
 .put(
     authenticateJWT(),
-    checkUserActive({isRequired:false}),
+    checkUserActive(),
     userController.changeUserPassword
 )
 .all((req, res, next)=>{
@@ -49,6 +49,16 @@ Router
 .route('/otp')
 .post(
     userController.verifyOtp
+)
+.all((req, res, next)=>{
+    next(new HttpError({statusCode: 405}))
+});
+
+Router
+.route('/')
+.get(
+    authenticateJWT(),
+    userController.getInfomationUser
 )
 .all((req, res, next)=>{
     next(new HttpError({statusCode: 405}))

@@ -2,6 +2,7 @@ const config= require('../../../../config')
 const {ApiError} = require('../../../utils/apiResponse');
 const {HttpError, } = require('../../../utils/error');
 const {Customer}                         = require('../../../models/mysql');
+const {AUTHORIZATION} = require('../../../constants/errors')
 
 const setUrlAuthorization = (currentUrl)=>{
     return (req, res, next)=>{
@@ -30,6 +31,7 @@ const checkUserActive = function({isRequired=true}={}){
             }else{
                 return next(new HttpError({statusCode: 403, respone: new ApiError({
                     message: 'Account must be activated',
+                    error: AUTHORIZATION.USER_NOT_ACTIVED
                 })}));
             }
         }
@@ -48,7 +50,10 @@ const checkCustomerUser = function({isRequired=true}={}){
                 }else if(!isRequired){
                     next();
                 }else{
-                    return next(new HttpError({statusCode: 403, respone: new ApiError({})}));
+                    return next(new HttpError({statusCode: 403, respone: new ApiError({
+                        message: AUTHORIZATION.MUST_BE_CUSTOMER.message,
+                        error: AUTHORIZATION.MUST_BE_CUSTOMER
+                    })}));
                 }
             }
         } catch (error) {

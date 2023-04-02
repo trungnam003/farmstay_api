@@ -32,7 +32,7 @@ function subscribeMqttFarmstay(){
             const {hardware_id, farmstay_id} = respone
             getFieldNameEventById(hardware_id+'').then(value=>{
                 console.log(value)
-                io.of('/farmstay').to(farmstay_id).emit('humidity_temperature_sensor_0_data_0', dataInsert)
+                io.of('/farmstay').to(farmstay_id).emit(value, dataInsert)
             }).catch(console.log)
             
         }).catch(error=>{

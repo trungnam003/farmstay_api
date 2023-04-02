@@ -19,6 +19,9 @@ const config = {
         jwt_refesh_header: process.env.JWT_REFESH_HEADER,
 
     },
+    otp:{
+        exp: parseFloat(process.env.OTP_EXP)*60
+    },
     password:{
         salt: 12
     },

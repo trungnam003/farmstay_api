@@ -147,6 +147,48 @@ const getConfigFarmstayCustomerOwn = (customer)=>{
         }
     })
 }
+
+const getFieldEquipmentFarmstay = (customer)=>{
+    return new Promise(async(resolve, reject)=>{
+        try {
+            const farmstay = await Farmstay.findOne({
+                attributes:  ['id', 'uuid'],
+                include: [
+                    {
+                        model: RentFarmstay,
+                        as: 'rental_info',
+                        attributes: [],
+                        required: true    
+                    },
+                ],
+                where: {
+                    '$rental_info.customer_id$': customer.id 
+                }
+            });
+            if(!farmstay){
+                throw new HttpError({statusCode: 403, respone: new ApiError({message: 'The account does not have a farmstay rental'})})
+            }
+            const query = FarmstayConfig.findOne({
+                farmstay_id: (farmstay['uuid'])
+            }).select('-_id -equipments.equipment_fields.mqtt_topic -equipments.equipment_fields.hardware_id -__v')
+            const equipmentConfig = await query.exec()
+            
+            if(!equipmentConfig){
+                throw new HttpError({statusCode: 400, respone: new ApiError({message: 'Farmstay config not found'})})
+            }
+            const {equipments} = equipmentConfig;
+            const fields = Array.from(equipments).reduce((prev, curr)=>{
+                const {equipment_fields} = curr;
+                return [...prev, ...equipment_fields]
+            }, [])
+            
+            resolve(fields)
+        } catch (error) {
+            console.log(error);
+            reject(error)
+        }
+    })
+}
 module.exports = {
-    getFarmstayCustomerOwn, getConfigFarmstayCustomerOwn
+    getFarmstayCustomerOwn, getConfigFarmstayCustomerOwn, getFieldEquipmentFarmstay
 }

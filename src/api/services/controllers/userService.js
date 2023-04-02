@@ -25,7 +25,7 @@ const handleSendOtpToEmailUser = (user)=>{
         try {
             const {username, email} = user;
             const otp = await generateOtpCode();
-            await addOtpCode(username, otp, Math.floor(Date.now()/1000)+60*5)
+            await addOtpCode(username, otp, Math.floor(Date.now()/1000)+config.otp.exp)
             await sendMail(email+'', 'Mã OTP xác thực', templateOtpCode(otp))
             resolve(true)
         } catch (error) {
@@ -48,7 +48,7 @@ const handleActiveUser = (user, otpCode)=>{
                         resolve(true);
                     }else{
                         const respone = new ApiError({message:'Something went wrong'})
-                        reject(new HttpError({statusCode:503,respone}))
+                        reject(new HttpError({statusCode:500,respone}))
                     }
                     
                 }else{
@@ -119,7 +119,7 @@ const handleResetPasswordUserUsingOtp = (email, otpCode, newPassword)=>{
                         resolve(true);
                     }else{
                         const respone = new ApiError({message:'Something went wrong'})
-                        reject(new HttpError({statusCode:503,respone}))
+                        reject(new HttpError({statusCode:500,respone}))
                     }
                 }else{
                     const respone = new ApiError({message:'Invalid otp'})

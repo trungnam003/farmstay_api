@@ -1,12 +1,17 @@
 const mongoose = require('mongoose')
+require('dotenv').config()
+
+const STRING_CONNECT = process.env.MONGODB_STRING_CONNECT;
+const NAME_DB = process.env.MONGODB_DATABASE_NAME;
+
 mongoose.set("strictQuery", false);
 function connect(){
     return new Promise((resolve, reject)=>{
-        mongoose.connect('mongodb+srv://doadmin:5fIX0x6719s3KMT8@mongodb-farmstay-377e851f.mongo.ondigitalocean.com/admin?authSource=admin&tls=true',
+        mongoose.connect(STRING_CONNECT,
         {
             useNewUrlParser: true,
             useUnifiedTopology: true,
-            dbName: 'FarmstayData'
+            dbName: NAME_DB
             // authSource: "admin",
             // user: "trungnam1611",
             // pass: "Trungnam.123",

@@ -4,6 +4,7 @@ const bcrypt       = require('bcrypt');
 const {HttpError, } = require('../../../utils/error');
 const {ApiError} = require('../../../utils/apiResponse');
 const {Validate, Joi} = require('../../../helpers/validate')
+const {AUTHENTICATE} = require('../../../constants/errors')
 
 async function authenticateLocal(req, res, next){
     try {
@@ -23,6 +24,7 @@ async function authenticateLocal(req, res, next){
         if(!user){
             const error = new HttpError({statusCode: 401, respone: new ApiError({
                 message: 'Account does not exist', 
+                error: AUTHENTICATE.ACCOUNT_NOT_EXIST
             })})
             next(error)
         }else{
@@ -33,7 +35,8 @@ async function authenticateLocal(req, res, next){
                 next()
             }else{
                 const error = new HttpError({statusCode: 401, respone: new ApiError({
-                    message: 'Wrong password'
+                    message: 'Wrong password',
+                    error: AUTHENTICATE.WRONG_PASSWORD
                 })})
                 next(error)
             }

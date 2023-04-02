@@ -10,7 +10,7 @@ class SocketIoSingleton {
             if(!server){
                 throw new Error('Phải khởi tạo server trước')
             }else{
-                this.io = new socketio.Server(server);
+                this.io = new socketio.Server(server, {cors: {origin: '*'}});
                 SocketIoSingleton.instance = this;
             }
         }

@@ -8,7 +8,7 @@ const sequelize = require('sequelize');
 const {Op, fn} = sequelize
 const cloneDeep = require('lodash.clonedeep');
 const {HttpError, } = require('../../utils/error');
-const {ApiError, ApiSuccess} = require('../../utils/apiResponse');
+const {ApiError,} = require('../../utils/apiResponse');
 
 function transformFarmstayData(farmstay){
     const farmstayTranform = cloneDeep(farmstay);

@@ -6,6 +6,7 @@ const {addJwtIdToBlacklist}                 = require('../helpers/redis/blacklis
 const {createUserCustomer}                  = require('../services/controllers/authService')
 const {signJwtUserCustomer}                 = require('../services/jwt')
 
+
 class AuthController{
     constructor(){
         this.registerUser = this.registerUser.bind(this);
@@ -15,11 +16,11 @@ class AuthController{
 
     async registerUser(req, res, next){
         try {
-            const {username, email, password, phone, gender} = req.body;
+            const {username, email, password,} = req.body;
             const salt = await bcrypt.genSalt(config.password.salt);
             const hashed_password = await bcrypt.hash(password, salt);
             try{
-                const userCreate = {username, email, gender, hashed_password, phone, user_customer:{}}
+                const userCreate = {username, email, hashed_password, user_customer:{}}
                 await createUserCustomer(userCreate);
             }catch(error){
                 return next(new HttpError({

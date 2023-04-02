@@ -1,4 +1,5 @@
 const express                           = require('express');
+const cors = require('cors')
 const {sequelize}                       = require('./api/models/mysql');
 const morgan                            = require('morgan');
 const { createServer }                  = require('http');
@@ -13,6 +14,7 @@ const {redis} 							= require('./config/redis')
 const {connect} = require('./config/mongo')
 const mqttClient = require('./config/mqtt')
 
+
 const {socketio} = require('./api/app/socket.io')
 const path = require('path');
 
@@ -24,6 +26,7 @@ const env = process.env.NODE_ENV
 
 const main =  async()=>{
 	
+	app.use(cors())
 	// logging
 	app.use(morgan('dev'));
 
@@ -50,7 +53,7 @@ const main =  async()=>{
 	app.use(router);
 
 	app.all('*', function(req, res, next){
-        next(new HttpError({statusCode: 404, respone: new ResponseAPI({})}))
+        next(new HttpError({statusCode: 404, respone: new ApiError({})}))
     });
 
     // use list error handle
@@ -64,12 +67,12 @@ const main =  async()=>{
 		console.log(error)
 		console.log("Connect MySql FAIL :(");
 	}
-	// try {
-    //     await connect();
-    //     console.log("Connect MongoDB OK ^^");
-    // } catch (error) {
-    //     console.log("Connect MongoDB FAIL :(");
-    // }
+	try {
+        await connect();
+        console.log("Connect MongoDB OK ^^");
+    } catch (error) {
+        console.log("Connect MongoDB FAIL :(");
+    }
 	try {
 		await redis.ping();
         console.log("Connect Redis OK ^^");
