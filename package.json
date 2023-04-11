@@ -25,7 +25,8 @@
     "sequelize": "^6.26.0",
     "slug": "^8.2.2",
     "socket.io": "^4.6.1",
-    "uuid-buffer": "^1.0.3"
+    "uuid-buffer": "^1.0.3",
+    "web-push": "^3.5.0"
   },
   "devDependencies": {
     "morgan": "^1.10.0",

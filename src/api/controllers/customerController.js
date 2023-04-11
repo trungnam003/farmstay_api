@@ -2,7 +2,9 @@ const {HttpError, }                     = require('../utils/error');
 const {ApiError, ApiSuccess}            = require('../utils/apiResponse');
 const { getFarmstayCustomerOwn, 
         getConfigFarmstayCustomerOwn,
-        getFieldEquipmentFarmstay}   =require('../services/controllers/customerService')
+        getFieldEquipmentFarmstay,
+        handleGetLatestDataInField
+    }   =require('../services/controllers/customerService')
 
 class CustomerController{
     
@@ -38,6 +40,20 @@ class CustomerController{
             const fields = await getFieldEquipmentFarmstay(customer)
             const responseAPI = new ApiSuccess({
                 data: fields,
+            })
+            res.status(200).json(responseAPI)
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async getLatestDataInField(req, res, next){
+        try {
+            const {customer} = req;
+            const {field} = req.query;
+            const data = await handleGetLatestDataInField(customer, field)
+            const responseAPI = new ApiSuccess({
+                data
             })
             res.status(200).json(responseAPI)
         } catch (error) {

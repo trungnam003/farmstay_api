@@ -136,7 +136,7 @@ const getConfigFarmstayCustomerOwn = (customer)=>{
             }
             const query = FarmstayConfig.findOne({
                 farmstay_id: (farmstay['uuid'])
-            }).select('-_id -equipments.equipment_fields.mqtt_topic -equipments.equipment_fields.hardware_id -__v')
+            }).select('-_id -equipments.equipment_fields.mqtt_topic -__v') //-equipments.equipment_fields.hardware_id
             const equipmentConfig = await query.exec()
             if(!equipmentConfig){
                 throw new HttpError({statusCode: 400, respone: new ApiError({message: 'Farmstay config not found'})})
@@ -189,6 +189,83 @@ const getFieldEquipmentFarmstay = (customer)=>{
         }
     })
 }
+
+const handleGetLatestDataInField = (customer, fieldName)=>{
+    return new Promise(async(resolve, reject)=>{
+        try {
+            const farmstay = await Farmstay.findOne({
+                attributes:  ['id', 'uuid'],
+                include: [
+                    {
+                        model: RentFarmstay,
+                        as: 'rental_info',
+                        attributes: [],
+                        required: true    
+                    },
+                ],
+                where: {
+                    '$rental_info.customer_id$': customer.id 
+                }
+            });
+            if(!farmstay){
+                throw new HttpError({statusCode: 403, respone: new ApiError({message: 'The account does not have a farmstay rental'})})
+            }
+            const query = FarmstayConfig.findOne({
+                farmstay_id: (farmstay['uuid'])
+            }).select('-_id -equipments.equipment_fields.mqtt_topic -__v')
+            const equipmentConfig = await query.exec()
+            
+            if(!equipmentConfig){
+                throw new HttpError({statusCode: 400, respone: new ApiError({message: 'Farmstay config not found'})})
+            }
+            const {equipments} = equipmentConfig;
+            let hardwareId = null;
+            for (const equipment of equipments) {
+                const {equipment_fields} = equipment;
+                const fieldMatch = Array.from(equipment_fields).find((field)=>{
+                    const {field_name} = field;
+                    return field_name === fieldName;
+                })
+                if(fieldMatch){
+                    hardwareId = fieldMatch.hardware_id;
+                    break;
+                }
+            }
+            if(hardwareId){
+                const datas = await FarmstayData.aggregate([
+                    { $match: { farmstay_id: farmstay['uuid'], hardware_id: hardwareId+''} }, 
+                    { $unwind: `$equipments_data` }, 
+                    { $sort: { [`equipments_data.timestamp`]: -1 } }, 
+                    { $limit: 30 },
+                    { $group: { _id: null, [`data`]: { $push: `$equipments_data` } } } 
+                ]).exec()
+
+                // format data
+                if(datas[0] && Array.isArray(datas[0].data)){
+                    const dataRes = datas[0].data.map((data)=>{
+                        const {value, timestamp} = data;
+                        console.log(data);
+                        return {
+                            value, 
+                            timestamp: new Date(timestamp).getTime()
+                        }
+
+                    })
+                    resolve(dataRes.reverse())
+                }else{
+                    resolve([])
+                    
+                }
+                
+            }else{
+                throw new HttpError({statusCode: 404,})
+            }
+            
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 module.exports = {
-    getFarmstayCustomerOwn, getConfigFarmstayCustomerOwn, getFieldEquipmentFarmstay
+    getFarmstayCustomerOwn, getConfigFarmstayCustomerOwn, getFieldEquipmentFarmstay, handleGetLatestDataInField
 }

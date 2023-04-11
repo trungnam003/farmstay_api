@@ -71,7 +71,7 @@ const main =  async()=>{
         await connect();
         console.log("Connect MongoDB OK ^^");
     } catch (error) {
-        console.log("Connect MongoDB FAIL :(");
+        console.log("Connect MongoDB FAIL :(", error);
     }
 	try {
 		await redis.ping();

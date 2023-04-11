@@ -1,7 +1,25 @@
 const mqttClient = require('../../../config/mqtt')
 const SocketIoSingleton = require('../socket.io/SocketIoSingleton');
-const {FarmstayData} = require('../../models/mongo')
+const {FarmstayData, FarmstayConfig} = require('../../models/mongo')
 const {getFieldNameEventById} = require('../redis/socketioCache')
+
+async function pushDataEquipmentToDB(data, hardwareId){
+    try {
+        return await FarmstayData.findOneAndUpdate({
+            hardware_id:hardwareId,
+        },
+        {
+            "$push": {
+              "equipments_data": data
+            }
+        }
+        ).select('-equipments_data').exec()
+    } catch (error) {
+        console.log(error);
+        throw error 
+    }
+    
+}
 
 function subscribeMqttFarmstay(){
     const io = new SocketIoSingleton().io
@@ -10,35 +28,54 @@ function subscribeMqttFarmstay(){
           console.log('Subscribed to farmstay/#');
         }
     });
-    mqttClient.on('message',  function (topic, message) {
+    mqttClient.on('message',  async(topic, message)=> {
         console.log('Received message:', JSON.parse(message), 'on topic:', topic);
         const receivedData = JSON.parse(message);
-        const {hardware_id, value} = receivedData;
+        const {hardware_id:hardwareIdReceived, value, from} = receivedData;
         const dataInsert = {
-            value,
+            value: value,
             timestamp: Math.round(Date.now()/1000)
         }
-        FarmstayData.findOneAndUpdate({
-            hardware_id,
-        },
-        {
-            "$push": {
-              "equipments_data": dataInsert
-            }
+        if(from==='hardware'){
+            console.log('save to db')
+            try {
+                const hardware = await pushDataEquipmentToDB(dataInsert, hardwareIdReceived);
+                const {hardware_id, farmstay_id} = hardware
+                // const fieldName = await getFieldNameEventById(hardware_id+'')
+                const farmstayConfig = await FarmstayConfig.findOne({
+                    farmstay_id: farmstay_id,
+                    'equipments.equipment_fields': {
+                        $elemMatch:{
+                            hardware_id
+                        }
+                    }
+                }).exec();
+                const {equipments} = farmstayConfig
+                equipments.forEach((equipment)=>{
+                    const {equipment_fields} = equipment;
+                    const field = equipment_fields.find((field)=>{
+                        return field.hardware_id === hardware_id
+                    })
+                    if(field){
+                        const {danger_min, danger_max, field_name} = field;
+                        if(dataInsert.value<=danger_min || dataInsert.value>=danger_max){
+                            
+                            io.of('/farmstay').to(farmstay_id).emit(field_name, Object.assign(dataInsert, 
+                            {
+                                danger: true
+                            }));
+                            
+                        }else{
+                            io.of('/farmstay').to(farmstay_id).emit(field_name, dataInsert)
+                        }
+                        return;
+                    }
+                })
+            } catch (error) {
+                
+            }  
         }
-        ).select('-equipments_data')
-        .then((respone)=>{
-            console.log(respone)
-            const {hardware_id, farmstay_id} = respone
-            getFieldNameEventById(hardware_id+'').then(value=>{
-                console.log(value)
-                io.of('/farmstay').to(farmstay_id).emit(value, dataInsert)
-            }).catch(console.log)
-            
-        }).catch(error=>{
-            console.log(error)
-        })
-    });
+    });  
 
     return mqttClient
 }

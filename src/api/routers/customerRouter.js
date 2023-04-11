@@ -29,16 +29,6 @@ Router
     next(new HttpError({statusCode: 405}))
 });
 
-Router
-.route('/farmstay/equipments')
-.get(
-    authenticateJWT(),
-    checkCustomerUser(), checkUserActive(),
-    customerController.getEquipmentFarmstayOwn
-)
-.all((req, res, next)=>{
-    next(new HttpError({statusCode: 405}))
-});
 
 Router
 .route('/farmstay/equipments/fields')
@@ -51,4 +41,14 @@ Router
     next(new HttpError({statusCode: 405}))
 });
 
+Router
+.route('/farmstay/equipments/fields/latest_data')
+.get(
+    authenticateJWT(),
+    checkCustomerUser(), checkUserActive(),
+    customerController.getLatestDataInField
+)
+.all((req, res, next)=>{
+    next(new HttpError({statusCode: 405}))
+});
 module.exports = Router;

@@ -6,6 +6,8 @@ const {FarmstayConfig} = require('../../../../models/mongo')
 const {Farmstay, RentFarmstay, Customer, User} = require('../../../../models/mysql')
 const subscribeMqttFarmstay = require('../../../mqtt');
 const {saveSocketEventFields} = require('../../../redis/socketioCache')
+const Joi = require('@hapi/joi')
+const mqttClient = require('../../../../../config/mqtt')
 
 async function authenticateSocket(socket, next){
     try {
@@ -143,38 +145,54 @@ function farmstayRoomSocketIo(){
     farmNsp.use(getEventFieldFarmstay);
 
     farmNsp.on('connection', function(socket){
-        // socket.use((message, next)=>{
-        //     console.log(message)
-        //     return next()
-        // })
-        console.log("Có kết nối");
-        socket.on('subscribe', (uuidRoom)=>{
-            try{
-                console.log('[socket]','join room :',uuidRoom)
-                socket.join(uuidRoom);
-                socket.emit('message', uuidRoom);
-            }catch(e){
-                console.log('[error]','join room :',e);
-                socket.emit('error','couldnt perform requested action');
-            }
-        })
-        socket.on('unsubscribe',function(room){  
-            try{
-                console.log(socket.rooms instanceof Set)
-                console.log('[socket]','leave room :', room);
-                socket.leave(room);
-                socket.emit('message', 'Cút khỏi room');
-                socket.to(room).emit('message', 'Cút khỏi room');
-            }catch(e){
-                console.log('[error]','leave room :', e);
-                socket.emit('error','couldnt perform requested action');
-            }
-        })
         
+        socket.emit('ping', 'pong')
+        
+        socket.on('client_control', async({farmstay_id, hardware_id, value})=>{
+            const schema = Joi.object({
+                farmstay_id: Joi.string().uuid().required(),
+                hardware_id: Joi.string().required(),
+                value: Joi.alternatives(Joi.number().integer().required(), Joi.boolean().required())
+            })
+            try {
+                const validated = await schema.validateAsync({farmstay_id, hardware_id, value});
+                console.log(validated);
+                const farmstayConfig = await FarmstayConfig.findOne({
+                    farmstay_id: validated.farmstay_id,
+                    'equipments.equipment_fields': {
+                        $elemMatch:{
+                            hardware_id: validated.hardware_id
+                        }
+                    }
+                }).exec();
 
-        socket.emit('message', 'Wellcome Namespace')
-        
-        
+                const {equipments} = farmstayConfig
+                
+                for (const equipment of equipments) {
+                    const {equipment_fields} = equipment;
+                    const field = equipment_fields.find((field)=>{
+                        return field.hardware_id === hardware_id
+                    })
+                    if(field){
+                        const {mqtt_topic, role} = field;
+                        console.log(mqtt_topic);
+                        if(role==='control'){
+                            mqttClient.publish(mqtt_topic, JSON.stringify({
+                                from: 'client',
+                                hardware_id: field.hardware_id,
+                                value: validated.value
+                            }))
+                        }
+                        break;
+                    }
+                }
+                
+            } catch (error) {
+                console.log(error);
+                
+            }
+        })
+
         socket.on('error', (error) => {
             socket.emit('message', "Lỗi");
         });
