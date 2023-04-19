@@ -36,7 +36,7 @@ function subscribeMqttFarmstay(){
             value: value,
             timestamp: Math.round(Date.now()/1000)
         }
-        if(from==='hardware'){
+        if(from==='hardware' && hardwareIdReceived){
             console.log('save to db')
             try {
                 const hardware = await pushDataEquipmentToDB(dataInsert, hardwareIdReceived);
@@ -72,7 +72,7 @@ function subscribeMqttFarmstay(){
                     }
                 })
             } catch (error) {
-                
+                console.log(error)
             }  
         }
     });  

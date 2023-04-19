@@ -170,7 +170,7 @@ const getFieldEquipmentFarmstay = (customer)=>{
             }
             const query = FarmstayConfig.findOne({
                 farmstay_id: (farmstay['uuid'])
-            }).select('-_id -equipments.equipment_fields.mqtt_topic -equipments.equipment_fields.hardware_id -__v')
+            }).select('-_id -equipments.equipment_fields.mqtt_topic -__v')
             const equipmentConfig = await query.exec()
             
             if(!equipmentConfig){
@@ -179,9 +179,14 @@ const getFieldEquipmentFarmstay = (customer)=>{
             const {equipments} = equipmentConfig;
             const fields = Array.from(equipments).reduce((prev, curr)=>{
                 const {equipment_fields} = curr;
-                return [...prev, ...equipment_fields]
+                const fields = [];
+                for (let field of equipment_fields) {
+                    fields.push({...field.toJSON(), farmstay_id: (farmstay['uuid'])})
+                }
+                
+                return [...prev, ...fields]
             }, [])
-            
+            // console.log(fields)
             resolve(fields)
         } catch (error) {
             console.log(error);

@@ -43,6 +43,13 @@ const config = {
         from : process.env.MAIL_FROM, 
         from_name : process.env.MAIL_FROM_NAME,
     },
+    payment_vnp:{
+        vnp_TmnCode: process.env.vnp_TmnCode,
+        secret_key: process.env.vnp_HashSecret,
+        vnp_url: process.env.vnp_Url,
+        vnp_api: process.env.vnp_Api,
+        return_url: process.env.vnp_ReturnUrl,
+    }
 }
 
 deepFreeze(config);
