@@ -4,7 +4,7 @@ const {HttpError, }                         = require('../utils/error');
 const {ApiError, ApiSuccess}                = require('../utils/apiResponse');
 const {addJwtIdToBlacklist}                 = require('../helpers/redis/blacklistJwt')
 const {createUserCustomer}                  = require('../services/controllers/authService')
-const {signJwtUserCustomer}                 = require('../services/jwt')
+const {signJwtUser, getUser}                 = require('../services/jwt')
 
 
 class AuthController{
@@ -41,9 +41,11 @@ class AuthController{
             const {user} = req;
             const {username} = user;
             
-            const JWT = signJwtUserCustomer(username);
+            const JWT = signJwtUser(username);
+            const userResponse = await getUser(user);
             
             const responseAPI = new ApiSuccess({
+                data: userResponse,
                 object: {
                     [config.jwt.jwt_header]: JWT,
                     token_expires_in: Math.floor((Date.now()/1000)+(config.jwt.exp))

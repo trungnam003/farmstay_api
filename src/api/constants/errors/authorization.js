@@ -18,6 +18,12 @@ const AUTHORIZATION = {
         message: 'Must be a customer user',
         code: '003'
     },
+    MUST_BE_EMPLOYEE: {
+        type: TYPE,
+        slug: 'must_be_employee',
+        message: 'Must be a employee user',
+        code: '004'
+    },
 }
 
 module.exports = AUTHORIZATION;

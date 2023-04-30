@@ -20,12 +20,12 @@ Router
 .get(
     farmstayController.getFarmstayByUuid
 )
-.post(
-    authenticateJWT(),
-    checkCustomerUser(),
-    checkUserActive(),
-    farmstayController.handleUserRentFarmstayByUuid
-)
+// .post(
+//     authenticateJWT(),
+//     checkCustomerUser(),
+//     checkUserActive(),
+//     farmstayController.handleUserRentFarmstayByUuid
+// )
 .all((req, res, next)=>{
     next(new HttpError({statusCode: 405}))
 });
@@ -35,12 +35,12 @@ Router
 .get(
     farmstayController.getFarmstayByUuid
 )
-.post(
-    authenticateJWT(),
-    checkCustomerUser(),
-    checkUserActive(),
-    farmstayController.handleUserRentFarmstayByUuid
-)
+// .post(
+//     authenticateJWT(),
+//     checkCustomerUser(),
+//     checkUserActive(),
+//     farmstayController.handleUserRentFarmstayByUuid
+// )
 .all((req, res, next)=>{
     next(new HttpError({statusCode: 405}))
 });

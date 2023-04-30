@@ -71,26 +71,26 @@ class FarmstayController{
         }
     }
 
-    async handleUserRentFarmstayByUuid(req, res, next){
-        try {
-            const {customer} = req;
-            const {uuid} = req.params
-            try {
-                const rentFarmstay = await handleUserRentFarmstay(uuid, customer);
-                if(rentFarmstay){
-                    const responseAPI = new ApiSuccess({})
-                    res.status(200).json(responseAPI)
-                }else{
-                    throw new Error()
-                }
-            } catch (error) {
-                const responseAPI = new ApiError({})
-                return next(new HttpError({statusCode: 400, respone: responseAPI}))
-            }
-        } catch (error) {
-            next(error)
-        }
-    }
+    // async handleUserRentFarmstayByUuid(req, res, next){
+    //     try {
+    //         const {customer} = req;
+    //         const {uuid} = req.params
+    //         try {
+    //             const rentFarmstay = await handleUserRentFarmstay(uuid, customer);
+    //             if(rentFarmstay){
+    //                 const responseAPI = new ApiSuccess({})
+    //                 res.status(200).json(responseAPI)
+    //             }else{
+    //                 throw new Error()
+    //             }
+    //         } catch (error) {
+    //             const responseAPI = new ApiError({})
+    //             return next(new HttpError({statusCode: 400, respone: responseAPI}))
+    //         }
+    //     } catch (error) {
+    //         next(error)
+    //     }
+    // }
 
     async createPaymentURL(req, res, next){
         try {

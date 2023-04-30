@@ -14,29 +14,31 @@ const config = require('../../../config')
  */
 const createUserCustomer = async (user)=>
 {
-    return new Promise(async(resolve, reject)=>{
-        try {
-            const {username, email, hashed_password, 
-                phone, gender, user_customer} = user;
-            const userType = config.user.customer;
-            
-            await User.create({
-                username, email, hashed_password, phone, gender,
-                user_type: userType,
-                user_customer
-            }, {
-                include: [
-                    {
-                        model: Customer,
-                        as: 'user_customer',
-                        
-                    }
-                ]
-            })
-            resolve(true)
-        } catch (error) {
-            reject(error)
-        }
+    return new Promise((resolve, reject)=>{
+        (async () =>{
+            try {
+                const {username, email, hashed_password, 
+                    phone, gender, user_customer} = user;
+                const userType = config.user.customer;
+                
+                await User.create({
+                    username, email, hashed_password, phone, gender,
+                    user_type: userType,
+                    user_customer
+                }, {
+                    include: [
+                        {
+                            model: Customer,
+                            as: 'user_customer',
+                            
+                        }
+                    ]
+                })
+                resolve(true)
+            } catch (error) {
+                reject(error)
+            }
+        })();
     })
 }
 
