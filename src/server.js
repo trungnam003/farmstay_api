@@ -50,7 +50,11 @@ const main =  async()=>{
 		
 	});
 
-	app.use(router);
+	app.use((req, res, next)=>{
+		console.log(req.headers);
+		next()
+	})
+	app.use('/api',router);
 
 	app.all('*', function(req, res, next){
         next(new HttpError({statusCode: 404, respone: new ApiError({})}))
