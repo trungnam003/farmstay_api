@@ -108,21 +108,21 @@ Validate.isUsernameOrEmail = function({require=true}={}){
 //     return validate;
 // }
 
-const req = {};
-req.body = {
-    // email: 'thtntrungnamgmail.com',
-    login: 'thtntrungnamgsmail#com',
-    password: '12'
+// const req = {};
+// req.body = {
+//     // email: 'thtntrungnamgmail.com',
+//     login: 'thtntrungnamgsmail#com',
+//     password: '12'
     
-}
-const a = Validate(req.body, {
+// }
+// const a = Validate(req.body, {
     
-    'login': Validate.isUsername(),
-    // 'test': Validate.isNumber()
-});
+//     'login': Validate.isUsername(),
+//     // 'test': Validate.isNumber()
+// });
 
 
-console.log("hello", a.error.message)
+// console.log("hello", a.error.message)
 module.exports = {
     Validate, Joi
 }

@@ -32,14 +32,19 @@ function subscribeMqttFarmstay(){
         console.log('Received message:', JSON.parse(message), 'on topic:', topic);
         const receivedData = JSON.parse(message);
         const {hardware_id:hardwareIdReceived, value, from} = receivedData;
+        let valueInsert = typeof +value === 'number' && !isNaN(+value) ? parseFloat((+value).toFixed(2)):NaN;
+        
         const dataInsert = {
-            value: value,
+            value: valueInsert,
             timestamp: Math.round(Date.now()/1000)
         }
-        if(from==='hardware' && hardwareIdReceived){
+        if(from==='hardware' && !isNaN(valueInsert) && hardwareIdReceived){
             console.log('save to db')
             try {
                 const hardware = await pushDataEquipmentToDB(dataInsert, hardwareIdReceived);
+                if(!hardware){
+                    return;
+                }
                 const {hardware_id, farmstay_id} = hardware
                 // const fieldName = await getFieldNameEventById(hardware_id+'')
                 const farmstayConfig = await FarmstayConfig.findOne({
@@ -68,12 +73,13 @@ function subscribeMqttFarmstay(){
                         }else{
                             io.of('/farmstay').to(farmstay_id).emit(field_name, dataInsert)
                         }
-                        return;
                     }
                 })
             } catch (error) {
                 console.log(error)
             }  
+        }else{
+            console.log('no save')
         }
     });  
 

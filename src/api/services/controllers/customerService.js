@@ -13,34 +13,31 @@ const {ApiError, ApiSuccess} = require('../../utils/apiResponse');
 function transformFarmstayData(farmstay){
     const farmstayTranform = cloneDeep(farmstay);
     const {images, address_of_farmstay} = farmstayTranform;
-    let imagesResponse = null;
-    let addressResponse = null;
-    if(images){
-        imagesResponse = Array.from(images).map(image=>image.url);
-        delete farmstayTranform.images;
-        farmstayTranform['images'] = imagesResponse
-    }
-    if(address_of_farmstay){
-        const {specific_address, embedded_link, link, ward} = address_of_farmstay;
-        const {district, district: province} = ward;
-        addressResponse = {
-            specific_address, embedded_link, link,
-            ward: {
-                code: ward.code, name: ward.name, full_name: ward.full_name
-            },
-            district: {
-                code: district.code, name: district.name, full_name: district.full_name
-            },
-            province: {
-                code: province.code, name: province.name, full_name: province.full_name
-            }
+    const imagesResponse = Array.from(images).map(image=>image.url);
+
+    const {specific_address, embedded_link, link, ward} = address_of_farmstay;
+    const {district, district: {province}} = ward;
+    const addressResponse = {
+        specific_address, embedded_link, link,
+        ward: {
+            code: ward.code, name: ward.name, full_name: ward.full_name
+        },
+        district: {
+            code: district.code, name: district.name, full_name: district.full_name
+        },
+        province: {
+            code: province.code, name: province.name, full_name: province.full_name
         }
-        delete farmstayTranform.address_of_farmstay;
-        farmstayTranform['address'] = addressResponse
     }
+    delete farmstayTranform.images;
+    delete farmstayTranform.address_of_farmstay;
+    Object.assign(farmstayTranform, {
+        images:imagesResponse,
+        address: addressResponse,
+    })
+
     return farmstayTranform;
 }
-
 
 const getFarmstayCustomerOwn = (customer)=>{
     return new Promise((resolve, reject)=>{

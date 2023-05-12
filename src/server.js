@@ -49,11 +49,7 @@ const main =  async()=>{
 		console.log('Connected to MQTT broker');
 		
 	});
-
-	app.use((req, res, next)=>{
-		console.log(req.headers);
-		next()
-	})
+	
 	app.use('/api',router);
 
 	app.all('*', function(req, res, next){
