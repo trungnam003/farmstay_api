@@ -253,7 +253,7 @@ const handleGetLatestDataInField = (customer, fieldName)=>{
                     if(datas[0] && Array.isArray(datas[0].data)){
                         const dataRes = datas[0].data.map((data)=>{
                             const {value, timestamp} = data;
-                            console.log(data);
+                            
                             return {
                                 value, 
                                 timestamp: new Date(timestamp).getTime()

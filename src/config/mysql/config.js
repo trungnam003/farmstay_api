@@ -16,6 +16,7 @@ module.exports = {
     "host": host,
     "dialect": dialect,
     "port": port,
+    "logging": false
   },
   "test": {
     "username": "root",
